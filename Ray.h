@@ -8,12 +8,14 @@
 #ifndef RAY_H
 #define	RAY_H
 
+#include "Vec3.h"
+
 class Ray {
 public:
-    Ray();
+    Ray(Vec3<double> _Dr, Vec3<double> _Or );
     Ray(const Ray& orig);
     virtual ~Ray();
-private:
+
     Vec3<double> Or;
     Vec3<double> Dr;
 };

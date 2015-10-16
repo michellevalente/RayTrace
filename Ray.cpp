@@ -7,7 +7,9 @@
 
 #include "Ray.h"
 
-Ray::Ray() {
+Ray::Ray(Vec3<double> _Dr, Vec3<double> _Or ) {
+	Dr = _Dr;
+	Or = _Or;
 }
 
 Ray::Ray(const Ray& orig) {

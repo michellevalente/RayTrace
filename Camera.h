@@ -10,13 +10,16 @@
 
 #include "Vec3.h"
 #include "Ray.h"
+#include <math.h>
 
 class Camera {
 public:
-    Camera();
+    Camera(Vec3<double>& eye, Vec3<double>& at, Vec3<double>& up, 
+        double _fovy, double _near, double _far, double _wp, double _hp);
     Camera(const Camera& orig);
     virtual ~Camera();
     Ray camGetRay(double x, double y);
+    Vec3<double> getPos(){return Center;}
 private:
      /* Definição da câmera */ 
     Vec3<double> Eye, Center, Up;
