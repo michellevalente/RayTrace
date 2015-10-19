@@ -8,11 +8,12 @@
 #include "Camera.h"
 
 
-Camera::Camera(Vec3<double>& eye, Vec3<double>& at, Vec3<double>& up, 
-        double _fovy, double _near, double _far, double _wp, double _hp) {
-    Eye = eye;
-    Center = at;
-    Up = up;
+Camera::Camera(double eyex,double eyey, double eyez, double atx, double aty, 
+        double atz,double upx, double upy, double upz, double _fovy, 
+        double _near, double _far, double _wp, double _hp) {
+    Eye.set(eyex, eyey, eyez);
+    Center.set(atx, aty, atz);
+    Up.set(upx,upy,upz);
     Vec3<double> temp = Eye - Center;
     fovy = _fovy;
     n = _near;
@@ -23,7 +24,7 @@ Camera::Camera(Vec3<double>& eye, Vec3<double>& at, Vec3<double>& up,
     hm = 2*df*tan(fovy / 2.0);
     wm = (wp /  hp) * hm;
     Ze = (1 / (temp.norm())) * temp;
-    Vec3<double> temp2 = Vec3<double>::cross(up, Ze);
+    Vec3<double> temp2 = Vec3<double>::cross(Up, Ze);
     Xe = (1 / (temp2.norm())) * temp2;
     Ye = Vec3<double>::cross(Ze, Xe);
 }

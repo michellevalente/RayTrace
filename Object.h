@@ -5,21 +5,21 @@
 #include "Ray.h"
 #include <math.h>
 #include "Camera.h"
-// class Object{
-// public:
-// 	Object();
-//     Object(const Object& orig);
-//     virtual ~Object();
-//     virtual Vec3<double> intersection();
-// private:
 
-// };
+class Object{
+public:
+	Object(){};
+    Object(const Object& orig);
+    virtual ~Object();
+    virtual Vec3<double> intersection() = 0;
+private:
+
+};
 
 class Esfera{
 public:
-	Esfera(Vec3<double>& p, double _raio, double r, double g, double b);
-	// Esfera(const Esfera& orig);
- //    virtual ~Esfera();
+	Esfera(double px, double py, double pz, double _raio, double r, 
+		double g, double b);
     bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi);
     Vec3<double> getColor();
 
@@ -37,6 +37,19 @@ public:
 private:
 	Vec3<double> posicao;
 	Vec3<double> rgb;
+};
+
+class Caixa{
+public:
+	Caixa(double xmin, double ymin, double zmin, double xmax, double ymax,
+	 double zmax, double r, double g, double b);
+    bool intersection(Ray& r, Vec3<double>& normal, Vec3<double>& pi, float &t);
+    Vec3<double> getColor();
+
+private:
+	Vec3<double> p1;
+	Vec3<double> p2;
+	Vec3<double> cor;
 };
 
 #endif
