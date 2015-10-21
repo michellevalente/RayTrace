@@ -6,7 +6,7 @@
  */
 
 #include "Camera.h"
-
+#include <iostream>
 
 Camera::Camera(double eyex,double eyey, double eyez, double atx, double aty, 
         double atz,double upx, double upy, double upz, double _fovy, 
@@ -15,7 +15,7 @@ Camera::Camera(double eyex,double eyey, double eyez, double atx, double aty,
     Center.set(atx, aty, atz);
     Up.set(upx,upy,upz);
     Vec3<double> temp = Eye - Center;
-    fovy = _fovy;
+    fovy = _fovy * M_PI / 180;
     n = _near;
     f = _far;
     wp = _wp;
@@ -27,6 +27,12 @@ Camera::Camera(double eyex,double eyey, double eyez, double atx, double aty,
     Vec3<double> temp2 = Vec3<double>::cross(Up, Ze);
     Xe = (1 / (temp2.norm())) * temp2;
     Ye = Vec3<double>::cross(Ze, Xe);
+    std::cout << "Ze: " << std::endl;
+    Ze.print();
+    std::cout << "Xe: " << std::endl;
+    Xe.print();
+    std::cout << "Ye: " << std::endl;
+    Ye.print();
 }
 
 Camera::Camera(const Camera& orig) {

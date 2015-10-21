@@ -20,7 +20,8 @@ public:
     Camera(const Camera& orig);
     virtual ~Camera();
     Ray camGetRay(double x, double y);
-    Vec3<double> getPos(){return Center;}
+    Vec3<double> getPos(){return Center;};
+    Vec3<double> getEye(){return Eye;};
      
 private:
 
