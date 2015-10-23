@@ -316,7 +316,7 @@ Material::Material(std::string _nome, double kdx,double kdy, double kdz, double 
 
 }
 
-Vec3<double> Object::getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, Camera& cam, Vec3<double>& luz_ambiente)
+Vec3<double> Object::getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, Camera& cam)
 {
 	double diffuse = calculateDiffuse(pi, luz, normal);
 	double spec = calculateSpec(pi, luz, 

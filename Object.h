@@ -8,6 +8,14 @@
 #include "image.h"
 
 
+// class Scene{
+// public:
+// 	Scene();
+// private:
+// 	Vec3<double> background;
+	
+// };
+
 class Luz{
 public:
 	Luz(Vec3<double>& p, Vec3<double>& cor){ posicao = p; rgb = cor; };
@@ -28,6 +36,7 @@ public:
 	int getCoefSpec(){return coef_spec;};
 	//Vec3<double> getFinalColor()
 	void getFinalColor(Vec3<double>& pi, Vec3<double>& corFinal, int raio);
+	bool reflete(){if(coef_reflexao > 0.0) return 1; else return 0;}
 private:
 	std::string nome;
 	Vec3<double> kd;
@@ -50,7 +59,7 @@ public:
 	double calculateSpec(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, 
 	Camera& cam, Vec3<double> corSpec, double coef);
 	virtual Material getMaterial() = 0;
-	Vec3<double> getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, Camera& cam, Vec3<double>& luz_ambiente);
+	Vec3<double> getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, Camera& cam);
 private:
 	
 };
@@ -77,6 +86,7 @@ public:
 	 double zmax, Material& material);
     bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi);
     Material getMaterial(){return *mat;};
+
 private:
 	Vec3<double> p1;
 	Vec3<double> p2;

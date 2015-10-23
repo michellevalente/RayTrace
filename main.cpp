@@ -3,6 +3,7 @@
 #include "Vec3.h"
 #include "Object.h"
 #include "image.h"
+#define maxdepth 3
 
 using namespace std;
 
@@ -21,6 +22,52 @@ bool sombra(Vec3<double> pi, Luz luz, Object ** objects, int numobj, int obj)
 	return false;
 }
 
+Vec3<double> shade(Vec3<double>& pi, Vec3<double>& normal, Camera& cam, Luz& luz, Object ** objects, int numObj, int obj, Vec3<double> luz_ambiente, int depth)
+{
+	Vec3<double> cor = objects[obj]->getColor(pi,luz, normal, cam);
+	double fs;
+	if(sombra(pi, luz, objects, numObj, obj))
+		fs = 0.0;
+	else
+		fs = 1.0;
+	cor *= fs;
+	cor += luz_ambiente;
+
+	if(depth >= maxdepth)
+		return cor;
+
+	if(objects[obj]->getMaterial().reflete())
+		cout << "reflete" << endl;
+	return cor;
+}
+
+Vec3<double> trace(Camera& cam, Luz& luz, Vec3<double> luz_ambiente, Object ** objects, int numObj, Ray& r, int depth)
+{
+	double maxDistance = 100000000000;
+	int closest = -1;
+	Vec3<double> background(0.4,0.4,0.4);
+	Vec3<double> normal, pi;
+	for(int i = 0; i < numObj;i++)
+	{
+		if((objects[i])->intersection(cam,r, normal, pi))
+		{
+			double distance = (pi - cam.getEye()).norm();
+			if(distance < maxDistance){
+				maxDistance = distance;
+				closest = i;
+			}
+		}
+	}
+
+	if(closest != -1)
+	{
+		return shade(pi, normal, cam, luz, objects, numObj, closest, luz_ambiente, depth);
+	}
+	else
+		return background;
+}
+
+
 int main(){
 
 	const int width  = 400,
@@ -30,13 +77,13 @@ int main(){
 
 	Camera cam(100,40,40,0,0,0,0,1,0,90.0, 30.0, 230.0, width, height);
 
-	Vec3<double> luz_posicao(60,120,40);
+	Vec3<double> luz_posicao(40,120,0);
 	Vec3<double> luz_rgb(0.8,0.8,0.8);
 	Vec3<double> luz_ambiente(0.1,0.1,0.1);
 	Luz luz(luz_posicao, luz_rgb);
 	int numObj = 3;
 	Object* objects[numObj];
-	Material material_caixa("yellow",0.7 ,0.7,0,1,1,1,50,0,1.1,0.4,"");
+	Material material_caixa("yellow",0.7 ,0.7,0,1,1,1,40,0,1.1,0.4,"");
 	Material material_esfera("blue",0.0 ,0,1.0,1,1,1,50,0,1.1,0.4,"");
 
 	objects[0] = new Caixa(-80,-50,-50,50,-45,50,material_caixa);
@@ -53,33 +100,9 @@ int main(){
 
 		for(int j = 0; j < width; j++)
 		{
-
 			Ray r = cam.camGetRay(i, j);
-			Vec3<double> normal;
-			Vec3<double> pi;
-			bool obj = false;
-			for(int k = 0; k < numObj; k++)
-			{
-
-				if((objects[k])->intersection(cam,r, normal, pi))
-				{			
-					double fs;
-					Vec3<double> cor = objects[k]->getColor(pi,luz, normal, cam, luz_ambiente);
-					if(sombra(pi, luz, objects, numObj, k))
-					{
-						fs = 0;
-					}
-					else
-						fs = 1;
-
-	                cor *= fs;
-	                cor += luz_ambiente;
-	                imgSetPixel3f(img, i, j, cor.getX(), cor.getY(), cor.getZ());
-	                obj = true;
-				}
-			}
-			if(obj == false)
-				imgSetPixel3f(img, i, j, 0.4, 0.4, 0.4);
+			Vec3<double> cor = trace(cam, luz, luz_ambiente, objects,numObj, r,0);
+			imgSetPixel3f(img, i, j, cor.getX(), cor.getY(), cor.getZ());
 		}	
 	}
 
