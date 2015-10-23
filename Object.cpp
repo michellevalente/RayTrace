@@ -17,7 +17,7 @@ double min(double n1, double n2){
 
 // }
 
-Esfera::Esfera(double px,double py, double pz, double _raio, Material& material){
+Esfera::Esfera(Material& material, double _raio, double px,double py, double pz ){
 	pos.set(px, py, pz);
 	raio = _raio;
 	mat = &material;
@@ -90,8 +90,8 @@ bool Esfera::intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double
 // 	}
 // }
 
-Caixa::Caixa(double xmin, double ymin, double zmin, double xmax, double ymax,
-	double zmax, Material& material){
+Caixa::Caixa(Material& material, double xmin, double ymin, double zmin, double xmax, double ymax,
+	 double zmax){
 	p1.set(xmin, ymin, zmin);
 	p2.set(xmax, ymax, zmax);
 	mat = &material;
@@ -361,4 +361,11 @@ void Material::getFinalColor(Vec3<double>& pi, Vec3<double>& corFinal, int raio)
 		
 		
 	
+}
+
+Scene::Scene(double bx, double by, double bz, double lx, double ly, double lz, std::string imagem)
+{
+	background.set(bx, by, bz);
+	luz_ambiente.set(lx, ly, lz);
+	img = imagem; 
 }

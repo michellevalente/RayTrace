@@ -8,17 +8,20 @@
 #include "image.h"
 
 
-// class Scene{
-// public:
-// 	Scene();
-// private:
-// 	Vec3<double> background;
-	
-// };
+class Scene{
+public:
+	Scene(double bx, double by, double bz, double lx, double ly, double lz, std::string imagem);
+	Vec3<double> getBackground(){return background;};
+	Vec3<double> getLuz(){return luz_ambiente;};
+private:
+	Vec3<double> background;
+	Vec3<double> luz_ambiente;
+	std::string img;
+};
 
 class Luz{
 public:
-	Luz(Vec3<double>& p, Vec3<double>& cor){ posicao = p; rgb = cor; };
+	Luz(double px, double py, double pz, double r, double g, double b){ posicao.set(px, py, pz); rgb.set(r,g,b); };
 	Vec3<double> getRgb(){return rgb;};
 	Vec3<double> getPos(){return posicao;};
 private:
@@ -67,7 +70,7 @@ private:
 class Esfera: public Object{
 public:
 	//Esfera(double px, double py, double pz, double _raio, char * t);
-	Esfera(double px,double py, double pz, double _raio, Material& material);
+	Esfera(Material& material, double _raio, double px,double py, double pz );
     bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi);
     //void getFinalColor(Vec3<double>& pi, Vec3<double>& corFinal);
     Vec3<double> getPos(){return pos;};
@@ -82,8 +85,8 @@ private:
 
 class Caixa: public Object{
 public:
-	Caixa(double xmin, double ymin, double zmin, double xmax, double ymax,
-	 double zmax, Material& material);
+	Caixa(Material& material, double xmin, double ymin, double zmin, double xmax, double ymax,
+	 double zmax);
     bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi);
     Material getMaterial(){return *mat;};
 
