@@ -5,7 +5,7 @@
 #include "Ray.h"
 #include <math.h>
 #include "Camera.h"
-#include "Image.h"
+#include "image.h"
 
 
 class Luz{
@@ -50,6 +50,7 @@ public:
 	double calculateSpec(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, 
 	Camera& cam, Vec3<double> corSpec, double coef);
 	virtual Material getMaterial() = 0;
+	Vec3<double> getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, Camera& cam, Vec3<double>& luz_ambiente);
 private:
 	
 };

@@ -315,6 +315,23 @@ Material::Material(std::string _nome, double kdx,double kdy, double kdz, double 
 	textura = _textura;
 
 }
+
+Vec3<double> Object::getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, Camera& cam, Vec3<double>& luz_ambiente)
+{
+	double diffuse = calculateDiffuse(pi, luz, normal);
+	double spec = calculateSpec(pi, luz, 
+		normal, cam, getMaterial().getKs(), getMaterial().getCoefSpec());
+	Vec3<double> cor ;
+	cor = ((luz.getRgb()).cross2(getMaterial().getKd()) * (diffuse)) ;
+	//cor += luz_ambiente;
+	cor += ((luz.getRgb()).cross2(getMaterial().getKs()) * (spec));
+
+	return cor;
+}
+
+
+
+
 char estrela[256] = "mundo.bmp";
 Image * text = imgReadBMP(estrela);	
 void Material::getFinalColor(Vec3<double>& pi, Vec3<double>& corFinal, int raio)

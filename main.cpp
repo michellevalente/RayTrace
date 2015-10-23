@@ -6,7 +6,20 @@
 
 using namespace std;
 
+bool sombra(Vec3<double> pi, Luz luz, Object ** objects, int numobj, int obj)
+{
+	Vec3<double> normal, pi2;
+	Camera cam(100,40,40,0,0,0,0,1,0,90.0, 30.0, 230.0, 400, 400);
+	Ray r(luz.getPos() - pi, pi);
+	for(int i = 0; i < numobj; i++)
+	{
+		if(i != obj)
+			if((objects[i])->intersection(cam,r, normal, pi2))
+				return true;
+	}
 
+	return false;
+}
 
 int main(){
 
@@ -49,19 +62,18 @@ int main(){
 			{
 
 				if((objects[k])->intersection(cam,r, normal, pi))
-				{
-					Vec3<double> cor;
+				{			
+					double fs;
+					Vec3<double> cor = objects[k]->getColor(pi,luz, normal, cam, luz_ambiente);
+					if(sombra(pi, luz, objects, numObj, k))
+					{
+						fs = 0;
+					}
+					else
+						fs = 1;
 
-					//material_esfera.getFinalColor(pi, cor,50);
-
-					double diffuse = objects[k]->calculateDiffuse(pi, luz, normal);
-					double spec = objects[k]->calculateSpec(pi, luz, 
-						normal, cam, objects[k]->getMaterial().getKs(), objects[k]->getMaterial().getCoefSpec());
-
-					cor = ((luz.getRgb()).cross2(objects[k]->getMaterial().getKd()) * (diffuse)) ;
-					cor += luz_ambiente;
-					cor += ((luz.getRgb()).cross2(objects[k]->getMaterial().getKs()) * (spec));
-					
+	                cor *= fs;
+	                cor += luz_ambiente;
 	                imgSetPixel3f(img, i, j, cor.getX(), cor.getY(), cor.getZ());
 	                obj = true;
 				}
