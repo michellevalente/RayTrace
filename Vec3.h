@@ -35,7 +35,7 @@ public:
         return dot(*this, v2);  
     }
 
-    T norm() {
+    T norm() const{
         return sqrt(dot(*this));
     }
    
@@ -64,7 +64,7 @@ public:
         return Vec3(v1.y*v2.z - v1.z*v2.y, v1.z*v2.x - v1.x*v2.z, v1.x*v2.y - v1.y*v2.x);
     }
     
-    Vec3<T> cross(const Vec3<T> &v2) {
+    Vec3<T> cross(const Vec3<T> &v2) const{
         return cross(*this, v2);
     }
 
@@ -91,6 +91,15 @@ public:
 
     const friend Vec3<T> operator *(const T a, const Vec3<T> &v1) {
         return v1 * a;
+    }
+
+    const T operator [](int idx) {
+        if(idx == 0)
+            return x;
+        if(idx == 1)
+            return y;
+        else
+            return z;
     }
 
     const Vec3<T> operator /(const T a) const {
@@ -163,6 +172,19 @@ public:
 
     double getZ(){
         return z;
+    }
+
+    void swap(Vec3<T> v2)
+    {
+        double temp = x;
+        x = v2.getX();
+        v2.setX(temp);
+        temp = y;
+        y = v2.getY();
+        v2.setY(temp);
+        temp = z;
+        z = v2.getZ();
+        v2.setZ(temp);
     }
 };
 

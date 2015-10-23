@@ -5,29 +5,8 @@
 #include "Ray.h"
 #include <math.h>
 #include "Camera.h"
+#include "Image.h"
 
-class Object{
-public:
-	Object(){};
-    Object(const Object& orig);
-    virtual ~Object();
-    virtual Vec3<double> intersection() = 0;
-private:
-
-};
-
-class Esfera{
-public:
-	Esfera(double px, double py, double pz, double _raio, double r, 
-		double g, double b);
-    bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi);
-    Vec3<double> getColor();
-
-private:
-	Vec3<double> pos;
-	double raio;
-	Vec3<double> cor;
-};
 
 class Luz{
 public:
@@ -39,16 +18,80 @@ private:
 	Vec3<double> rgb;
 };
 
-class Caixa{
+class Material{
+public:
+	Material(std::string _nome, double kdx,double kdy, double kdz, double ksx, 
+		double ksy, double ksz, int _coef_spec ,int _coef_reflexao,
+		double _indice_refracao, double _opacidade, std::string _textura);
+	Vec3<double> getKd(){return kd;};
+	Vec3<double> getKs(){return ks;};
+	int getCoefSpec(){return coef_spec;};
+	//Vec3<double> getFinalColor()
+	void getFinalColor(Vec3<double>& pi, Vec3<double>& corFinal, int raio);
+private:
+	std::string nome;
+	Vec3<double> kd;
+	Vec3<double> ks;
+	int coef_spec;
+	int coef_reflexao;
+	int indice_refracao;
+	double opacidade;
+	std::string textura;
+
+};
+
+class Object{
+public:
+	Object(){};
+    Object(const Object& orig);
+    //virtual ~Object();
+    virtual bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi) = 0;
+    double calculateDiffuse(Vec3<double>& pi, Luz& luz, Vec3<double>& normal);
+	double calculateSpec(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, 
+	Camera& cam, Vec3<double> corSpec, double coef);
+	virtual Material getMaterial() = 0;
+private:
+	
+};
+
+class Esfera: public Object{
+public:
+	//Esfera(double px, double py, double pz, double _raio, char * t);
+	Esfera(double px,double py, double pz, double _raio, Material& material);
+    bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi);
+    //void getFinalColor(Vec3<double>& pi, Vec3<double>& corFinal);
+    Vec3<double> getPos(){return pos;};
+    Material getMaterial(){return *mat;};
+
+private:
+	Vec3<double> pos;
+	double raio;
+	Image * text; 
+	Material * mat;
+};
+
+class Caixa: public Object{
 public:
 	Caixa(double xmin, double ymin, double zmin, double xmax, double ymax,
-	 double zmax, double r, double g, double b);
-    bool intersection(Ray& r, Vec3<double>& normal, Vec3<double>& pi, float &t);
-    Vec3<double> getColor();
-
+	 double zmax, Material& material);
+    bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi);
+    Material getMaterial(){return *mat;};
 private:
 	Vec3<double> p1;
 	Vec3<double> p2;
+	Material * mat;
+};
+
+class Triangulo{
+public:
+	Triangulo(Vec3<double>& p1, Vec3<double>& p2, Vec3<double>& p3, double r, double g, double b);
+    bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi);
+    Vec3<double> getColor(){return cor;}
+    //void getFinalColor(Vec3<double>& pi, Vec3<double>& corFinal);
+private:
+	Vec3<double> p1;
+	Vec3<double> p2;
+	Vec3<double> p3;
 	Vec3<double> cor;
 };
 

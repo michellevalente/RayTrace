@@ -27,12 +27,6 @@ Camera::Camera(double eyex,double eyey, double eyez, double atx, double aty,
     Vec3<double> temp2 = Vec3<double>::cross(Up, Ze);
     Xe = (1 / (temp2.norm())) * temp2;
     Ye = Vec3<double>::cross(Ze, Xe);
-    std::cout << "Ze: " << std::endl;
-    Ze.print();
-    std::cout << "Xe: " << std::endl;
-    Xe.print();
-    std::cout << "Ye: " << std::endl;
-    Ye.print();
 }
 
 Camera::Camera(const Camera& orig) {
