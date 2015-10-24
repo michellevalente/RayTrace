@@ -11,10 +11,8 @@ using namespace std;
 
 Scene * scene;
 Camera * cam;
-
 vector<Material *> mat;
-Luz * luz;
-
+vector<Luz *> luz;
 vector<Object *> objects;
 
 int findMaterial(std::string nome)
@@ -78,7 +76,7 @@ void readRt5(std::string file)
 			in >> px >>  py >>  pz >>  r >>  g >>  b;
 
 			Luz * l = new Luz( px,  py,  pz,  r,  g,  b);
-			luz = l;
+			luz.push_back(l);
 		}
 
 		if(line == "SPHERE")
@@ -102,28 +100,38 @@ void readRt5(std::string file)
 
 
 }
-bool sombra(Vec3<double> pi, Luz luz, int obj)
+bool sombra(Vec3<double>& pi, vector<Luz*>& luz, int obj)
 {
 	Vec3<double> normal, pi2;
 	Camera cam(100,40,40,0,0,0,0,1,0,90.0, 30.0, 230.0, 400, 400);
-	Ray r(luz.getPos() - pi, pi);
-	for(int i = 0; i < objects.size(); i++)
-	{
-		if(i != obj)
-			if((objects[i])->intersection(cam,r, normal, pi2))
-				return true;
-	}
 
-	return false;
+	int sombra = 0;
+	
+	for(int k = 0 ; k < luz.size(); k++)
+	{
+		Ray r(luz[k]->getPos() - pi, pi);
+		for(int i = 0; i < objects.size(); i++)
+		{
+			if(i != obj)
+				if((objects[i])->intersection(cam,r, normal, pi2))
+					sombra++;
+		}
+	}
+	
+
+	if(sombra == luz.size())
+		return true;
+	else
+		return false;
 }
 
 Vec3<double> shade(Vec3<double>& pi, Vec3<double>& normal, int obj, int depth)
 {
 
 	int idx = findMaterial(objects[obj]->getMaterial());
-	Vec3<double> cor = objects[obj]->getColor(pi,*luz, normal, *cam, *mat[idx]);
+	Vec3<double> cor = objects[obj]->getColor(pi,luz, normal, *cam, *mat[idx]);
 	double fs;
-	if(sombra(pi, *luz, obj))
+	if(sombra(pi, luz, obj))
 		fs = 0.0;
 	else
 		fs = 1.0;
@@ -164,7 +172,7 @@ Vec3<double> trace(Ray& r, int depth)
 
 int main(){
 	
-	readRt5("../../cenasSimplesRT4/teste.rt5");
+	readRt5("../../cenasSimplesRT4/pool.rt5");
 	int width = cam->getW();
 	int height = cam->getH();
 	Image * img = imgCreate (width, height, 3);

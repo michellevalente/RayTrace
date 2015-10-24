@@ -1,6 +1,8 @@
+#include <vector>
 #include "Object.h"
 #include "float.h"
 #include "Vec3.h"
+#include "image.h"
 #define EPSILON	1.0e-3
 double min(double n1, double n2){
 	if(n1 < n2)
@@ -292,6 +294,9 @@ double Object::calculateSpec(Vec3<double>& pi, Luz& luz, Vec3<double>& normal,
 
 	Vec3<double> ve = (cam.getEye() - pi );
 	ve =ve.normalized();
+
+	// Vec3<double> re = ((2*(vl.dot(normal)))*normal )- ve;
+
 	Vec3<double> cor_spec(1.0,1.0,1.0);
 	double spec = rl.dot(ve);
 	if(spec > 0){
@@ -314,18 +319,93 @@ Material::Material(std::string _nome, double kdx,double kdy, double kdz, double 
 	indice_refracao = _indice_refracao;
 	opacidade = _opacidade;
 	textura = _textura;
+	if(_textura != "null")
+	{
+		char * file = const_cast<char*>(textura.c_str());
+		t = imgReadBMP(file);
+	}
+		
 
 }
 
-Vec3<double> Object::getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, Camera& cam, Material& mat)
+void Caixa::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal)
 {
-	double diffuse = calculateDiffuse(pi, luz, normal);
-	double spec = calculateSpec(pi, luz, 
-		normal, cam, mat.getKs(), mat.getCoefSpec());
-	Vec3<double> cor ;
-	cor = ((luz.getRgb()).cross2(mat.getKd()) * (diffuse)) ;
-	//cor += luz_ambiente;
-	cor += ((luz.getRgb()).cross2(mat.getKs()) * (spec));
+	int w = imgGetWidth(textura);
+	int h = imgGetHeight(textura);
+	int x = pi.getX();
+	int y = pi.getY();
+	int z = pi.getZ();
+	int xmin = p1.getX();
+	int ymin = p1.getY();
+	int zmin = p1.getZ();
+	int xmax = p2.getX();
+	int ymax = p2.getY();
+	int zmax = p2.getZ();
+	double u = 0, v = 0;
+
+	if( ( std::fabs( x - xmin ) < EPSILON ) || ( std::fabs( x - xmax ) < EPSILON ) )
+	{
+		u = (double)( y - ymin ) / ( ymax - ymin );
+		v = (double)( z - zmin ) / ( zmax - zmin );
+	}
+	else if( ( std::fabs( y - ymin ) < EPSILON ) || ( std::fabs( y - ymax ) < EPSILON ) )
+	{
+		u = (double)( z - zmin ) / ( zmax - zmin ); 
+		v = (double)( x - xmin ) / ( xmax - xmin );
+	}
+	else if( ( std::fabs( z - zmin ) < EPSILON ) || ( std::fabs( z - zmax ) < EPSILON ) )
+	{
+		u = (double) ( x - xmin ) / ( xmax - xmin );
+		v = (double)( y - ymin ) / ( ymax - ymin );
+	}
+
+	int i = ( (int)( u * ( w- 1 ) ) % w );
+	int j = ( (int)( v * ( h - 1 ) ) % h );
+
+	float r, g, b;
+	imgGetPixel3f(textura, i, j, &r, &g, &b);
+	cor.set(r,g,b);
+}
+
+void Esfera::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal)
+{
+	int w = imgGetWidth(textura);
+	int h = imgGetHeight(textura);
+
+	double phi = atan2( normal.getY(), normal.getX() );
+	double theta = atan2( sqrt( ( normal.getX() * normal.getX() ) + ( normal.getY() * normal.getY() ) ), normal.getZ() );
+
+	double u = ( 1 + phi / M_PI );
+	double v = ( 1 - theta / M_PI );
+	
+	int i = ( (int)( u * ( w- 1 ) ) % w );
+	int j = ( (int)( v * ( h - 1 ) ) % h );
+
+	float r, g, b;
+	imgGetPixel3f(textura, i, j, &r, &g, &b);
+	cor.set(r,g,b);
+}
+
+Vec3<double> Object::getColor(Vec3<double>& pi, std::vector<Luz*>& luz, Vec3<double>& normal, 
+	Camera& cam, Material& mat)
+{
+	Vec3<double> cor(0.0,0.0,0.0);
+	Vec3<double> kd;
+	if(mat.getTextura() == "null")
+		kd = mat.getKd();
+	else
+		getTextura(mat.getFileTextura(), pi, kd, normal);
+
+	
+		
+	for(int i = 0 ; i < luz.size(); i++)
+	{
+		double diffuse = calculateDiffuse(pi, *luz[i], normal);
+		double spec = calculateSpec(pi, *luz[i], 
+			normal, cam, mat.getKs(), mat.getCoefSpec());
+		cor += ((luz[i]->getRgb()).cross2(kd) * (diffuse)) ;
+		cor += ((luz[i]->getRgb()).cross2(mat.getKs()) * (spec));
+	}
 
 	return cor;
 }
@@ -335,6 +415,7 @@ Vec3<double> Object::getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, 
 
 char estrela[256] = "mundo.bmp";
 Image * text = imgReadBMP(estrela);	
+
 void Material::getFinalColor(Vec3<double>& pi, Vec3<double>& corFinal, int raio)
 {
 	int w = imgGetWidth(text);

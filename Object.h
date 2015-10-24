@@ -41,6 +41,9 @@ public:
 	void getFinalColor(Vec3<double>& pi, Vec3<double>& corFinal, int raio);
 	bool reflete(){if(coef_reflexao > 0.0) return 1; else return 0;}
 	std::string getNome(){return nome;};
+	std::string getTextura(){return textura;};
+	Image * getFileTextura(){return t;};
+	 
 private:
 	std::string nome;
 	Vec3<double> kd;
@@ -50,6 +53,7 @@ private:
 	int indice_refracao;
 	double opacidade;
 	std::string textura;
+	Image * t;
 
 };
 
@@ -63,7 +67,9 @@ public:
 	double calculateSpec(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, 
 	Camera& cam, Vec3<double> corSpec, double coef);
 	virtual std::string getMaterial() = 0;
-	Vec3<double> getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, Camera& cam, Material& mat);
+	Vec3<double> getColor(Vec3<double>& pi, std::vector<Luz*>& luz, Vec3<double>& normal, 
+	Camera& cam, Material& mat);
+	virtual void getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal) = 0;
 private:
 	
 };
@@ -76,6 +82,7 @@ public:
     //void getFinalColor(Vec3<double>& pi, Vec3<double>& corFinal);
     Vec3<double> getPos(){return pos;};
     std::string getMaterial(){return mat;};
+    void getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal);
 
 private:
 	Vec3<double> pos;
@@ -90,6 +97,7 @@ public:
 	 double zmax);
     bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi);
     std::string getMaterial(){return mat;};
+    void getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal);
 
 private:
 	Vec3<double> p1;
