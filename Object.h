@@ -11,8 +11,8 @@
 class Scene{
 public:
 	Scene(double bx, double by, double bz, double lx, double ly, double lz, std::string imagem);
-	Vec3<double> getBackground(){return background;};
 	Vec3<double> getLuz(){return luz_ambiente;};
+	Vec3<double> getBackground(){return background;};
 private:
 	Vec3<double> background;
 	Vec3<double> luz_ambiente;
@@ -21,7 +21,7 @@ private:
 
 class Luz{
 public:
-	Luz(double px, double py, double pz, double r, double g, double b){ posicao.set(px, py, pz); rgb.set(r,g,b); };
+	Luz(double px, double py, double pz, double cx, double cy, double cz){ posicao.set(px,py,pz); rgb.set(cx, cy, cz); };
 	Vec3<double> getRgb(){return rgb;};
 	Vec3<double> getPos(){return posicao;};
 private:
@@ -40,6 +40,7 @@ public:
 	//Vec3<double> getFinalColor()
 	void getFinalColor(Vec3<double>& pi, Vec3<double>& corFinal, int raio);
 	bool reflete(){if(coef_reflexao > 0.0) return 1; else return 0;}
+	std::string getNome(){return nome;};
 private:
 	std::string nome;
 	Vec3<double> kd;
@@ -61,8 +62,8 @@ public:
     double calculateDiffuse(Vec3<double>& pi, Luz& luz, Vec3<double>& normal);
 	double calculateSpec(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, 
 	Camera& cam, Vec3<double> corSpec, double coef);
-	virtual Material getMaterial() = 0;
-	Vec3<double> getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, Camera& cam);
+	virtual std::string getMaterial() = 0;
+	Vec3<double> getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, Camera& cam, Material& mat);
 private:
 	
 };
@@ -70,30 +71,30 @@ private:
 class Esfera: public Object{
 public:
 	//Esfera(double px, double py, double pz, double _raio, char * t);
-	Esfera(Material& material, double _raio, double px,double py, double pz );
+	Esfera(std::string material, double _raio, double px,double py, double pz);
     bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi);
     //void getFinalColor(Vec3<double>& pi, Vec3<double>& corFinal);
     Vec3<double> getPos(){return pos;};
-    Material getMaterial(){return *mat;};
+    std::string getMaterial(){return mat;};
 
 private:
 	Vec3<double> pos;
 	double raio;
 	Image * text; 
-	Material * mat;
+	std::string mat;
 };
 
 class Caixa: public Object{
 public:
-	Caixa(Material& material, double xmin, double ymin, double zmin, double xmax, double ymax,
+	Caixa(std::string material, double xmin, double ymin, double zmin, double xmax, double ymax,
 	 double zmax);
     bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi);
-    Material getMaterial(){return *mat;};
+    std::string getMaterial(){return mat;};
 
 private:
 	Vec3<double> p1;
 	Vec3<double> p2;
-	Material * mat;
+	std::string mat;
 };
 
 class Triangulo{

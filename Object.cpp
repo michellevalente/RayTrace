@@ -17,14 +17,15 @@ double min(double n1, double n2){
 
 // }
 
-Esfera::Esfera(Material& material, double _raio, double px,double py, double pz ){
+Esfera::Esfera(std::string material,double _raio, double px,double py, double pz){
 	pos.set(px, py, pz);
 	raio = _raio;
-	mat = &material;
+	mat = material;
 }
 
 bool Esfera::intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi){
 
+	
 	Vec3<double> temp;
 	temp = (r.Or - pos);
 	double a = (r.Dr).dot(r.Dr);
@@ -90,11 +91,11 @@ bool Esfera::intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double
 // 	}
 // }
 
-Caixa::Caixa(Material& material, double xmin, double ymin, double zmin, double xmax, double ymax,
-	 double zmax){
+Caixa::Caixa(std::string material, double xmin, double ymin, double zmin, double xmax, double ymax,
+	double zmax){
 	p1.set(xmin, ymin, zmin);
 	p2.set(xmax, ymax, zmax);
-	mat = &material;
+	mat = material;
 }
 
 void getNormalBox(Vec3<double>& pi, Vec3<double>& p1, Vec3<double>& p2, Vec3<double>& normal)
@@ -316,15 +317,15 @@ Material::Material(std::string _nome, double kdx,double kdy, double kdz, double 
 
 }
 
-Vec3<double> Object::getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, Camera& cam)
+Vec3<double> Object::getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, Camera& cam, Material& mat)
 {
 	double diffuse = calculateDiffuse(pi, luz, normal);
 	double spec = calculateSpec(pi, luz, 
-		normal, cam, getMaterial().getKs(), getMaterial().getCoefSpec());
+		normal, cam, mat.getKs(), mat.getCoefSpec());
 	Vec3<double> cor ;
-	cor = ((luz.getRgb()).cross2(getMaterial().getKd()) * (diffuse)) ;
+	cor = ((luz.getRgb()).cross2(mat.getKd()) * (diffuse)) ;
 	//cor += luz_ambiente;
-	cor += ((luz.getRgb()).cross2(getMaterial().getKs()) * (spec));
+	cor += ((luz.getRgb()).cross2(mat.getKs()) * (spec));
 
 	return cor;
 }

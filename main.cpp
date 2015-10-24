@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <vector>
 #include "Camera.h"
 #include "Vec3.h"
 #include "Object.h"
@@ -7,12 +9,105 @@
 
 using namespace std;
 
-bool sombra(Vec3<double> pi, Luz luz, Object ** objects, int numobj, int obj)
+Scene * scene;
+Camera * cam;
+
+vector<Material *> mat;
+Luz * luz;
+
+vector<Object *> objects;
+
+int findMaterial(std::string nome)
+{
+	for(int i = 0; i < mat.size(); i++)
+	{
+		if(mat[i]->getNome() == nome)
+			return i;
+	}
+}
+
+void readRt5(std::string file)
+{
+	ifstream in(file);
+	string line;
+	in >> line >> line;
+
+	while(in >> line)  
+	{
+		if(line == "SCENE")
+		{
+			double rf, gf, bf, rl, gl, bl;
+			string textura;
+			in >> rf >> gf >> bf >> rl >> gl >> bl >> textura;
+			Scene * s= new Scene(rf,gf,bf,rl,gl,bl,textura);
+			scene = s;
+		}
+		if(line == "CAMERA")
+		{
+			double eyex, eyey,  eyez,  atx,  aty, 
+        	 atz, upx,  upy,  upz,  fovy, 
+             near,  far,  wp,  hp ;
+             in >> eyex >> eyey >> eyez >> atx >> aty >> atz >> upx >> 
+             upy >> upz >> fovy >> near >> far >> wp >> hp;
+
+             Camera * camera = new Camera(eyex, eyey,  eyez,  atx,  aty, 
+        	 atz, upx,  upy,  upz,  fovy, 
+             near,  far,  wp,  hp);
+             cam = camera;
+		}
+
+		if(line == "MATERIAL")
+		{
+			string nome, textura;
+			double kdx, kdy,  kdz,  ksx, 
+			 ksy,  ksz,  coef_spec , coef_reflexao,
+			 indice_refracao,  opacidade; 
+
+			 in >> nome >> kdx >> kdy >> kdz>> ksx >> ksy >> ksz >> 
+			 coef_spec >> coef_reflexao >> indice_refracao >> opacidade >> textura;
+
+			 Material * material = new Material(nome,kdx, kdy,  kdz,  ksx, 
+			 ksy,  ksz,  coef_spec , coef_reflexao,
+			 indice_refracao,  opacidade, textura );
+
+			 mat.push_back(material);
+		}
+		if(line == "LIGHT")
+		{
+			double px,  py,  pz,  r,  g,  b;
+			in >> px >>  py >>  pz >>  r >>  g >>  b;
+
+			Luz * l = new Luz( px,  py,  pz,  r,  g,  b);
+			luz = l;
+		}
+
+		if(line == "SPHERE")
+		{
+			string mat;
+			double raio,  px, py,  pz;
+			in >> mat >> raio >> px >> py >> pz;
+			Esfera * e = new Esfera(mat, raio, px, py, pz);
+			objects.push_back(e);
+
+		}
+		if(line == "BOX")
+		{
+			std::string material;
+			double xmin,  ymin,  zmin,  xmax,  ymax,  zmax;
+			in >> material >> xmin >>  ymin >> zmin >> xmax >> ymax >> zmax;
+			Caixa * c = new Caixa(material, xmin,  ymin,  zmin,  xmax,  ymax,  zmax);
+			objects.push_back(c);
+		}
+	}
+
+
+}
+bool sombra(Vec3<double> pi, Luz luz, int obj)
 {
 	Vec3<double> normal, pi2;
 	Camera cam(100,40,40,0,0,0,0,1,0,90.0, 30.0, 230.0, 400, 400);
 	Ray r(luz.getPos() - pi, pi);
-	for(int i = 0; i < numobj; i++)
+	for(int i = 0; i < objects.size(); i++)
 	{
 		if(i != obj)
 			if((objects[i])->intersection(cam,r, normal, pi2))
@@ -22,84 +117,66 @@ bool sombra(Vec3<double> pi, Luz luz, Object ** objects, int numobj, int obj)
 	return false;
 }
 
-Vec3<double> shade(Scene scene, Vec3<double>& pi, Vec3<double>& normal, Camera& cam, Luz& luz, Object ** objects, int numObj, int obj, int depth)
+Vec3<double> shade(Vec3<double>& pi, Vec3<double>& normal, int obj, int depth)
 {
-	Vec3<double> cor = objects[obj]->getColor(pi,luz, normal, cam);
+
+	int idx = findMaterial(objects[obj]->getMaterial());
+	Vec3<double> cor = objects[obj]->getColor(pi,*luz, normal, *cam, *mat[idx]);
 	double fs;
-	if(sombra(pi, luz, objects, numObj, obj))
+	if(sombra(pi, *luz, obj))
 		fs = 0.0;
 	else
 		fs = 1.0;
 	cor *= fs;
-	cor += scene.getLuz();
+	Vec3<double> luz_ambiente(0.1,0.1,0.1);
+	cor += luz_ambiente;
 
 	if(depth >= maxdepth)
 		return cor;
 
-	if(objects[obj]->getMaterial().reflete())
-		cout << "reflete" << endl;
+	// if(objects[obj]->getMaterial().reflete())
+	// 	cout << "reflete" << endl;
 	return cor;
 }
 
-Vec3<double> trace(Camera& cam, Luz& luz, Scene scene, Object ** objects, int numObj, Ray& r, int depth)
+Vec3<double> trace(Ray& r, int depth)
 {
 	double maxDistance = 100000000000;
 	int closest = -1;
 
 	Vec3<double> normal, pi;
-	for(int i = 0; i < numObj;i++)
+	for(int i = 0; i < objects.size();i++)
 	{
-		if((objects[i])->intersection(cam,r, normal, pi))
+		if((objects[i])->intersection(*cam,r, normal, pi))
 		{
-			double distance = (pi - cam.getEye()).norm();
-			if(distance < maxDistance){
-				maxDistance = distance;
-				closest = i;
-			}
+			return shade(pi, normal, i, depth);
 		}
 	}
 
-	if(closest != -1)
-	{
-		return shade(scene, pi, normal, cam, luz, objects, numObj, closest, depth);
-	}
-	else
-		return scene.getBackground();
+	// if(closest != -1)
+	// {
+	// 	return shade(pi, normal,objects, numObj, closest, depth);
+	// }
+	// else
+		return scene->getBackground();
 }
 
 
 int main(){
 	
-	Scene scene(0,0.4,0.4,0.2,0.2,0.2,"");
-	Camera cam(50, 70, 400, 0, 0, 150, 0, 1, 0, 90, 1, 100, 400, 400);
-	Material blue("blue", 0.0, 0.2, 1, 0.2, 0.3, 1.0,  5,  0,  0,  1,  "");
-	Material yellow("yellow", 0.8, 0.8, 0,   0.9, 0.9, 0.1,  5,  0,  0,  1,  "");
-	Material shine_black("shine_black",  0, 0, 0,   1, 1, 1,  500,  0.6,  0,  1,  "");
-	Material black("black", 0, 0, 0,   0, 0 ,0,  500,  0,  0,  1,  "");
-	
-
-	int width = cam.getW();
-	int height = cam.getH();
+	readRt5("../../cenasSimplesRT4/teste.rt5");
+	int width = cam->getW();
+	int height = cam->getH();
 	Image * img = imgCreate (width, height, 3);
 	
-	Luz luz(0, 400, 0, 0.8, 0.8, 0.8);
-	int numObj = 4;
-	Object* objects[numObj];
-	objects[0] = new Esfera(blue, 50,100,0,150);
-	objects[1] =  new Esfera(yellow,50,-100, 0, 150);
-	objects[2] =new Caixa(shine_black,-300, -150, -250,   350, 200, -170);
-	objects[3] =new Caixa( black,     -310, -160, -201,   360, 210, -171);
-	
-	// objects[3] = new Caixa()
-
 
 	for(int i = 0; i < height; i++)
 	{
 
 		for(int j = 0; j < width; j++)
 		{
-			Ray r = cam.camGetRay(i, j);
-			Vec3<double> cor = trace(cam, luz, scene, objects,numObj, r,0);
+			Ray r = cam->camGetRay(i, j);
+			Vec3<double> cor = trace(r,0);
 			imgSetPixel3f(img, i, j, cor.getX(), cor.getY(), cor.getZ());
 		}	
 	}

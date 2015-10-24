@@ -22,8 +22,8 @@ public:
     Ray camGetRay(double x, double y);
     Vec3<double> getPos(){return Center;};
     Vec3<double> getEye(){return Eye;};
-    int getW(){return wp;};
-    int getH(){return hp;};
+     int getW(){return wp;};
+     int getH(){return hp;};
      
 private:
 
