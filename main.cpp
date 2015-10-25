@@ -15,6 +15,8 @@ vector<Material *> mat;
 vector<Luz *> luz;
 vector<Object *> objects;
 
+Vec3<double> trace(Ray& r, int depth);
+
 int findMaterial(std::string nome)
 {
 	for(int i = 0; i < mat.size(); i++)
@@ -22,6 +24,7 @@ int findMaterial(std::string nome)
 		if(mat[i]->getNome() == nome)
 			return i;
 	}
+	return -1;
 }
 
 void readRt5(std::string file)
@@ -96,30 +99,43 @@ void readRt5(std::string file)
 			Caixa * c = new Caixa(material, xmin,  ymin,  zmin,  xmax,  ymax,  zmax);
 			objects.push_back(c);
 		}
+
+		if(line == "TRIANGLE")
+		{
+			std::string material;
+			double p1x,  p1y,  p1z,  p2x, 
+			 p2y,  p2z,  p3x,  p3y, 
+			 p3z, u1, u2, u3, v1, v2, v3;
+			 in >> material >> p1x >> p1y >> p1z >> p2x >> p2y >> p2z >> p3x
+			 >> p3y >> p3z >> u1 >> v1 >> u2 >> v2 >> u3 >> v3;
+			 Triangulo * t = new Triangulo(material,p1x,  p1y,  p1z,  p2x, 
+			 p2y,  p2z,  p3x,  p3y, p3z, u1, v1, u2, v2, u3, v3 );
+			 objects.push_back(t);
+		}
 	}
 
 
 }
-bool sombra(Vec3<double>& pi, vector<Luz*>& luz, int obj)
+bool sombra(Vec3<double>& pi, Luz * luz, int obj)
 {
 	Vec3<double> normal, pi2;
 	Camera cam(100,40,40,0,0,0,0,1,0,90.0, 30.0, 230.0, 400, 400);
 
 	int sombra = 0;
-	
-	for(int k = 0 ; k < luz.size(); k++)
+	double distance;
+	double max_distance = (luz->getPos() - pi).norm();
+
+	Ray r(luz->getPos() - pi, pi);
+	for(int i = 0; i < objects.size(); i++)
 	{
-		Ray r(luz[k]->getPos() - pi, pi);
-		for(int i = 0; i < objects.size(); i++)
-		{
-			if(i != obj)
-				if((objects[i])->intersection(cam,r, normal, pi2))
-					sombra++;
-		}
+		if(i != obj)
+			if((objects[i])->intersection(cam,r, normal, pi2, distance))
+				sombra++;
 	}
+
 	
 
-	if(sombra == luz.size())
+	if(sombra > 0)
 		return true;
 	else
 		return false;
@@ -127,45 +143,81 @@ bool sombra(Vec3<double>& pi, vector<Luz*>& luz, int obj)
 
 Vec3<double> shade(Vec3<double>& pi, Vec3<double>& normal, int obj, int depth)
 {
-
 	int idx = findMaterial(objects[obj]->getMaterial());
-	Vec3<double> cor = objects[obj]->getColor(pi,luz, normal, *cam, *mat[idx]);
-	double fs;
-	if(sombra(pi, luz, obj))
-		fs = 0.0;
-	else
-		fs = 1.0;
-	cor *= fs;
-	Vec3<double> luz_ambiente(0.1,0.1,0.1);
+	Vec3<double> cor(0.0,0.0,0.0);
+	for(int i = 0 ; i < luz.size(); i++)
+	{
+		Vec3<double> temp = luz[i]->getPos() - pi;
+		double L = (temp).norm();
+		if(L > 0.0)
+		{
+			cor += objects[obj]->getColor(pi,luz[i], normal, *cam, *mat[idx]);
+			double fs;
+			if(sombra(pi, luz[i], obj))
+				fs = 0.0;
+			else
+				fs = 1.0;
+			cor *= fs;
+		}
+		
+	}
+	
+	
+	Vec3<double> luz_ambiente(0.15,0.15,0.15);
 	cor += luz_ambiente;
 
-	if(depth >= maxdepth)
-		return cor;
+	// if(depth >= maxdepth)
+	// 	return cor;
 
-	// if(objects[obj]->getMaterial().reflete())
+	// if(mat[idx]->reflete())
+	// {
 	// 	cout << "reflete" << endl;
+	// 	Vec3<double> rr = 2* (cam->getEye() - pi);
+	// 	Ray r(rr, pi);
+	// 	Vec3<double> rColor = trace(r,depth + 1);
+	// 	cor += mat[idx]->getK() * rColor;
+	// }
+
+	// if(mat[idx]->transparente())
+	// {
+	// 	cout << "transparente" << endl;
+	// 	double s = 
+	// }
+		
 	return cor;
 }
 
 Vec3<double> trace(Ray& r, int depth)
 {
 	double maxDistance = 100000000000;
-	int closest = -1;
-
+	double closest = 123456;
+	int id_closest = -1;
+	double distance;
 	Vec3<double> normal, pi;
+	Vec3<double> closest_normal, closest_pi;
+
 	for(int i = 0; i < objects.size();i++)
 	{
-		if((objects[i])->intersection(*cam,r, normal, pi))
+		if((objects[i])->intersection(*cam,r, normal, pi, distance))
 		{
-			return shade(pi, normal, i, depth);
+			
+			if(distance > 0.0 && distance < closest)
+			{
+				closest = distance;
+				id_closest = i;
+				closest_normal = normal;
+				closest_pi = pi;
+			}
+			
 		}
 	}
 
-	// if(closest != -1)
-	// {
-	// 	return shade(pi, normal,objects, numObj, closest, depth);
-	// }
-	// else
+	if(id_closest != -1)
+	{
+		return shade(closest_pi, closest_normal, id_closest, depth);
+	}
+	else
+
 		return scene->getBackground();
 }
 
@@ -189,7 +241,7 @@ int main(){
 		}	
 	}
 
-	imgWriteBMP((char* )"teste.bmp", img);
+	imgWriteBMP((char* )"novo.bmp", img);
 	return 1;
 
 }
