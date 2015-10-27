@@ -13,7 +13,6 @@
 class Ray {
 public:
     Ray(Vec3<double> _Dr, Vec3<double> _Or );
-    Ray(const Ray& orig);
     virtual ~Ray();
 
     Vec3<double> Or;

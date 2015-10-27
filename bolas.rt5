@@ -1,0 +1,19 @@
+RT 5
+SCENE 0.4 0.4 0.4   0.3 0.3 0.5 null
+CAMERA 100 40 40 0 0 0 0 1 0 90 30 230 5000 5000
+MATERIAL black 1.0 0 0   1 1 1  50  0  0  1 wood.bmp
+MATERIAL espelho 0 0 0   0.4 0.4 0.392  80  0.9  0  1  null        
+MATERIAL plastic 0 0 1   1 1 1  50  0  0  1  bolafutebol.bmp
+MATERIAL vermelho 1.0 0 0   0.4 0.4 0.392  80  0.9  0  1  null 
+MATERIAL azul 0 0 1.0   0.4 0.4 0.392  80  0.9  0  1  null 
+MATERIAL verde 0 1.0 0   0.4 0.4 0.392  80  0.9  0  1  null 
+LIGHT 40 120 0  1 1 1
+SPHERE plastic      8      0 -37 0
+SPHERE plastic      8      -20 -37 21
+SPHERE plastic      8      15 -37 -30
+SPHERE plastic      8      -60 -37 -15
+SPHERE plastic      8      37 -37 28
+BOX    black    -80 -50 -50   50 -45 50
+BOX    black    -80 -50 -60   50 50 -50
+BOX    espelho    -80 -50 -60   -80 50 50
+BOX    black    -90 -50 -60   -80 50 50

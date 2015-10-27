@@ -29,9 +29,6 @@ Camera::Camera(double eyex,double eyey, double eyez, double atx, double aty,
     Ye = Vec3<double>::cross(Ze, Xe);
 }
 
-Camera::Camera(const Camera& orig) {
-}
-
 Camera::~Camera() {
 }
 

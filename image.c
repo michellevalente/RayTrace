@@ -1059,7 +1059,41 @@ Image* imgBinary( Image* greyImage )
 	return imgFinal;
 }
 
+float imgDif(Image*img0, Image*img1, float gamma)
+{
+   int w = imgGetWidth(img0);
+   int h = imgGetHeight(img0);
+   int x,y;
+   float rgb[3],rgb0[3],rgb1[3],avg=0.f,tot=0.f;
 
+   for (y=0;y<h;y++){
+      for (x=0;x<w;x++) {
+            float lum,new_lum,ratio;
+        
+            imgGetPixel3fv(img0,x,y,rgb0);
+            imgGetPixel3fv(img1,x,y,rgb1);
+
+            /* calcula o modulo da diferenca */
+            rgb[0]=(rgb1[0]>rgb0[0])? rgb1[0]-rgb0[0] : rgb0[0]-rgb1[0] ;
+            rgb[1]=(rgb1[1]>rgb0[1])? rgb1[1]-rgb0[1] : rgb0[1]-rgb1[1] ;
+            rgb[2]=(rgb1[2]>rgb0[2])? rgb1[2]-rgb0[2] : rgb0[2]-rgb1[2] ;
+
+            /* acumula a soma */
+            avg+=(rgb[0]+rgb[1]+rgb[2]);
+            tot+=(rgb0[0]+rgb0[1]+rgb0[2]);
+
+            /* corrige por gamma */
+            lum = luminance(rgb[0],rgb[1],rgb[2]);
+            new_lum = (float) pow(lum,1./gamma);
+            ratio = new_lum/lum;
+            rgb[0]*=ratio; rgb[1]*=ratio; rgb[2]*=ratio;
+
+            imgSetPixel3fv(img0,x,y,rgb);
+      }
+   }
+    avg=100*avg/tot;
+    return avg;
+}
 
 
 

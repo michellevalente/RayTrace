@@ -254,5 +254,16 @@ Image* imgBinary(Image* img_cgrey);
 
 Image * imgDilatation(Image * image, int MASK[2][2]);
 
+/**
+*    Calcula a diferenca entre duas imagens.
+*
+*    @param img0 img0 =  |img0-img1|^1/gamma
+*    @param img1.
+*
+*    @return retorna o valor medio dos canais rgb de todos pixels (antes da correcao gamma).
+*
+*/
+float imgDif(Image*img0, Image*img1, float gamma);
+
 #endif
 

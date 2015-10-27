@@ -21,9 +21,17 @@ private:
 
 class Luz{
 public:
-	Luz(double px, double py, double pz, double cx, double cy, double cz){ posicao.set(px,py,pz); rgb.set(cx, cy, cz); };
+	Luz(double px, double py, double pz, double cx, double cy, double cz){
+	 posicao.set(px,py,pz); 
+	 rgb.set(cx, cy, cz); 
+	};
 	Vec3<double> getRgb(){return rgb;};
 	Vec3<double> getPos(){return posicao;};
+	void print()
+	{
+		std::cout << "X: " << posicao.getX() << " Y: " << posicao.getY() << " Z: " << posicao.getZ() << std::endl;
+		std::cout << "R: " << rgb.getX() << " G: " << rgb.getY() << " B: " << rgb.getZ() << std::endl;
+	}
 private:
 	Vec3<double> posicao;
 	Vec3<double> rgb;
@@ -68,9 +76,9 @@ public:
 	double calculateSpec(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, 
 	Camera& cam, Vec3<double> corSpec, double coef);
 	virtual std::string getMaterial() = 0;
-	Vec3<double> getColor(Vec3<double>& pi, Luz * luz, Vec3<double>& normal, 
+	Vec3<double> getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, 
 	Camera& cam, Material& mat, Vec3<double>& kd);
-	virtual void getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal) = 0;
+	virtual void getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal,bool linear = false) = 0;
 private:
 	
 };
@@ -83,7 +91,7 @@ public:
     //void getFinalColor(Vec3<double>& pi, Vec3<double>& corFinal);
     Vec3<double> getPos(){return pos;};
     std::string getMaterial(){return mat;};
-    void getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal);
+    void getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal,  bool linear = false);
 
 private:
 	Vec3<double> pos;
@@ -98,7 +106,7 @@ public:
 	 double zmax);
     bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi,  double& distance);
     std::string getMaterial(){return mat;};
-    void getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal);
+    void getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal,  bool linear = false);
 
 private:
 	Vec3<double> p1;
@@ -113,7 +121,7 @@ public:
 	double _u2, double _v2, double _u3, double _v3);
     bool intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<double>& pi, double& distance);
     std::string getMaterial(){return mat;};
-    void getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal);
+    void getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal,  bool linear = false);
 private:
 	Vec3<double> p1;
 	Vec3<double> p2;

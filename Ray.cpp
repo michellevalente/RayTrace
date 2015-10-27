@@ -12,9 +12,6 @@ Ray::Ray(Vec3<double> _Dr, Vec3<double> _Or ) {
 	Or = _Or;
 }
 
-Ray::Ray(const Ray& orig) {
-}
-
 Ray::~Ray() {
 }
 

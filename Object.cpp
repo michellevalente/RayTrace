@@ -285,7 +285,7 @@ bool Triangulo::intersection(Camera& cam, Ray& r, Vec3<double>& normal, Vec3<dou
 	
 }
 
-void Triangulo::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal)
+void Triangulo::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal,  bool linear )
 {
 	int w = imgGetWidth(textura);
 	int h = imgGetHeight(textura);
@@ -304,12 +304,44 @@ void Triangulo::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, 
 	double u = l1 * u1 + l2 * u2 + l3 * u3;
 	double v = l1 * v1 + l2 * v2 + l3 * v3;
 
-	int i = ( (int)( u * ( w- 1 )  + 0.5) % w );
-	int j = ( (int)( v * ( h- 1 )  + 0.5) % w );
+	if(!linear)
+	{
+		int i = ( (int)( u * ( w- 1 )  + 0.5) % w );
+		int j = ( (int)( v * ( h- 1 )  + 0.5) % w );
 
-	float r, g, b;
-	imgGetPixel3f(textura, i, j, &r, &g, &b);
-	cor.set(r,g,b);
+		float r, g, b;
+		imgGetPixel3f(textura, i, j, &r, &g, &b);
+		cor.set(r,g,b);
+	}
+	else
+	{
+		double xp = u * (w - 1);
+		double yp = v * (h - 1);
+		double xmin = floor(xp);
+		double xmax = ceil(xp);
+		double ymin = floor(yp);
+		double ymax = ceil(yp);
+		Vec3<double> p1;
+		Vec3<double> p2;
+		Vec3<double> p3;
+		Vec3<double> p4;
+		float r, g, b;
+		imgGetPixel3f(textura, xmin, ymin, &r, &g, &b);
+		p1.set(r,g,b);
+		imgGetPixel3f(textura, xmax, ymin, &r, &g, &b);
+		p2.set(r,g,b);
+		imgGetPixel3f(textura, xmin, ymax, &r, &g, &b);
+		p3.set(r,g,b);
+		imgGetPixel3f(textura, xmax, ymax, &r, &g, &b);
+		p4.set(r,g,b);
+
+		double tx = (xp - xmin) / (xmax - xmin);
+		double ty = (yp - ymin) / (ymax - ymin);
+
+		Vec3<double> p1x = (1- tx) * p1 + tx * p2;
+		Vec3<double> p2x = (1- tx) * p3 + tx * p4;
+		cor = (1 - ty) * p1x + ty * p2x;
+	}
 
 }
 
@@ -370,19 +402,19 @@ Material::Material(std::string _nome, double kdx,double kdy, double kdz, double 
 
 }
 
-void Caixa::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal)
+void Caixa::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal, bool linear )
 {
 	int w = imgGetWidth(textura);
 	int h = imgGetHeight(textura);
-	int x = pi.getX();
-	int y = pi.getY();
-	int z = pi.getZ();
-	int xmin = p1.getX();
-	int ymin = p1.getY();
-	int zmin = p1.getZ();
-	int xmax = p2.getX();
-	int ymax = p2.getY();
-	int zmax = p2.getZ();
+	double x = pi.getX();
+	double y = pi.getY();
+	double z = pi.getZ();
+	double xmin = p1.getX();
+	double ymin = p1.getY();
+	double zmin = p1.getZ();
+	double xmax = p2.getX();
+	double ymax = p2.getY();
+	double zmax = p2.getZ();
 	double u = 0, v = 0;
 
 	if( ( std::fabs( x - xmin ) < EPSILON ) || ( std::fabs( x - xmax ) < EPSILON ) )
@@ -400,44 +432,115 @@ void Caixa::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3
 		u = (double) ( x - xmin ) / ( xmax - xmin );
 		v = (double)( y - ymin ) / ( ymax - ymin );
 	}
+	else
+		std::cout << "erro na textura" << std::endl; 
+	if ( v >= 1.0) v = 1.0;
+	if ( v <= 0.0) v = 0.0;
+	if ( u >= 1.0) u = 1.0;
+	if ( u <= 0.0) u = 0.0;
+	if(!linear || u == 0.0 || u == 1.0 || v == 0.0 || v == 1.0)
+	{
+		int i = ( (int)( u * ( w- 1 )  + 0.5) );
+		int j = ( (int)( v * ( h- 1 )  + 0.5) );
+		float r, g, b;
+		imgGetPixel3f(textura, i, j, &r, &g, &b);
+		cor.set(r,g,b);
+	}
+	else{
+		double xp = u * (w - 1);
+		double yp = v * (h - 1);
+		double xmin = floor(xp);
+		double xmax = ceil(xp);
+		double ymin = floor(yp);
+		double ymax = ceil(yp);
+		Vec3<double> p1;
+		Vec3<double> p2;
+		Vec3<double> p3;
+		Vec3<double> p4;
+		float r, g, b;
+		imgGetPixel3f(textura, xmin, ymin, &r, &g, &b);
+		p1.set(r,g,b);
+		imgGetPixel3f(textura, xmax, ymin, &r, &g, &b);
+		p2.set(r,g,b);
+		imgGetPixel3f(textura, xmin, ymax, &r, &g, &b);
+		p3.set(r,g,b);
+		imgGetPixel3f(textura, xmax, ymax, &r, &g, &b);
+		p4.set(r,g,b);
 
-	int i = ( (int)( u * ( w- 1 )  + 0.5) % w );
-	int j = ( (int)( v * ( h- 1 )  + 0.5) % w );
+		double tx = (xp - xmin) / (xmax - xmin);
+		double ty = (yp - ymin) / (ymax - ymin);
 
-	float r, g, b;
-	imgGetPixel3f(textura, i, j, &r, &g, &b);
-	cor.set(r,g,b);
+		Vec3<double> p1x = (1- tx) * p1 + tx * p2;
+		Vec3<double> p2x = (1- tx) * p3 + tx * p4;
+		cor = (1 - ty) * p1x + ty * p2x;
+	}	
 }
 
-void Esfera::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal)
+void Esfera::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal, bool linear )
 {
 	int w = imgGetWidth(textura);
 	int h = imgGetHeight(textura);
 
-	double phi = atan2( normal.getY(), normal.getX() );
-	double theta = atan2( sqrt( ( normal.getX() * normal.getX() ) + ( normal.getY() * normal.getY() ) ), normal.getZ() );
+	double phi = atan( normal.getY()/ normal.getX() );
+	double theta = atan( sqrt( ( normal.getX() * normal.getX() ) + ( normal.getY() * normal.getY() ) )/ normal.getZ() );
 
-	double u = ( 1 + phi / M_PI );
-	double v = ( 1 - theta / M_PI );
+	// double u = (phi + M_PI/2)/M_PI;
+	// double v = (theta + M_PI/2)/M_PI;
 	
-	int i = ( (int)( u * ( w- 1 )  + 0.5) % w );
-	int j = ( (int)( v * ( h- 1 )  + 0.5) % w );
+	double u = 0.5 + (atan2(-normal.getZ(), -normal.getX()))/(2*M_PI);
+	double v = 0.5 - asin(-normal.getY())/ M_PI;
 
-	float r, g, b;
-	imgGetPixel3f(textura, i, j, &r, &g, &b);
-	cor.set(r,g,b);
+	if(!linear)
+	{
+		int i = ( (int)( u * ( w- 1 )  + 0.5) );
+		int j = ( (int)( v * ( h- 1 )  + 0.5) );
+
+		float r, g, b;
+		imgGetPixel3f(textura, i, j, &r, &g, &b);
+		cor.set(r,g,b);
+	}
+	else
+	{
+		double xp = u * (w - 1);
+		double yp = v * (h - 1);
+		double xmin = floor(xp);
+		double xmax = ceil(xp);
+		double ymin = floor(yp);
+		double ymax = ceil(yp);
+		Vec3<double> p1;
+		Vec3<double> p2;
+		Vec3<double> p3;
+		Vec3<double> p4;
+		float r, g, b;
+		imgGetPixel3f(textura, xmin, ymin, &r, &g, &b);
+		p1.set(r,g,b);
+		imgGetPixel3f(textura, xmax, ymin, &r, &g, &b);
+		p2.set(r,g,b);
+		imgGetPixel3f(textura, xmin, ymax, &r, &g, &b);
+		p3.set(r,g,b);
+		imgGetPixel3f(textura, xmax, ymax, &r, &g, &b);
+		p4.set(r,g,b);
+
+		double tx = (xp - xmin) / (xmax - xmin);
+		double ty = (yp - ymin) / (ymax - ymin);
+
+		Vec3<double> p1x = (1- tx) * p1 + tx * p2;
+		Vec3<double> p2x = (1- tx) * p3 + tx * p4;
+		cor = (1 - ty) * p1x + ty * p2x;
+	}
+	
 }
 
-Vec3<double> Object::getColor(Vec3<double>& pi, Luz * luz, Vec3<double>& normal, 
+Vec3<double> Object::getColor(Vec3<double>& pi, Luz& luz, Vec3<double>& normal, 
 	Camera& cam, Material& mat, Vec3<double>& kd)
 {
 	Vec3<double> cor(0.0,0.0,0.0);
 
-	double diffuse = calculateDiffuse(pi, *luz, normal);
-	double spec = calculateSpec(pi, *luz, 
+	double diffuse = calculateDiffuse(pi, luz, normal);
+	double spec = calculateSpec(pi, luz, 
 		normal, cam, mat.getKs(), mat.getCoefSpec());
-	cor += ((luz->getRgb()).cross2(kd) * (diffuse)) ;
-	cor += ((luz->getRgb()).cross2(mat.getKs()) * (spec));
+	cor += ((luz.getRgb()).cross2(kd) * (diffuse)) ;
+	cor += ((luz.getRgb()).cross2(mat.getKs()) * (spec));
 	
 
 	return cor;
