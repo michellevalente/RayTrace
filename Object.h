@@ -44,7 +44,7 @@ public:
 	bool transparente(){if(opacidade  < 1.0) return 1; else return 0;}
 	double getK(){return coef_reflexao;};
 	double getN(){return indice_refracao;};
-	 
+    double getO(){return opacidade;};
 private:
 	std::string nome;
 	Vec3<double> kd;
@@ -69,7 +69,7 @@ public:
 	Camera& cam, Vec3<double> corSpec, double coef);
 	virtual std::string getMaterial() = 0;
 	Vec3<double> getColor(Vec3<double>& pi, Luz * luz, Vec3<double>& normal, 
-	Camera& cam, Material& mat);
+	Camera& cam, Material& mat, Vec3<double>& kd);
 	virtual void getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3<double>& normal) = 0;
 private:
 	

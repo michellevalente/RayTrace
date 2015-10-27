@@ -141,17 +141,25 @@ bool sombra(Vec3<double>& pi, Luz * luz, int obj)
 		return false;
 }
 
-Vec3<double> shade(Vec3<double>& pi, Vec3<double>& normal, int obj, int depth)
+Vec3<double> shade(Vec3<double>& pi, Vec3<double>& normal, int obj, int depth, Ray r)
 {
 	int idx = findMaterial(objects[obj]->getMaterial());
-	Vec3<double> cor(0.0,0.0,0.0);
+	Vec3<double> kd;
+
+	if(mat[idx]->getTextura() == "null")
+		kd = mat[idx]->getKd();
+	else
+		objects[obj]->getTextura(mat[idx]->getFileTextura(), pi, kd, normal);
+
+	Vec3<double> cor = scene->getLuz().cross2(kd);
+
 	for(int i = 0 ; i < luz.size(); i++)
 	{
 		Vec3<double> temp = luz[i]->getPos() - pi;
 		double L = (temp).norm();
 		if(L > 0.0)
 		{
-			cor += objects[obj]->getColor(pi,luz[i], normal, *cam, *mat[idx]);
+			cor += objects[obj]->getColor(pi,luz[i], normal, *cam, *mat[idx], kd);
 			double fs;
 			if(sombra(pi, luz[i], obj))
 				fs = 0.0;
@@ -161,36 +169,32 @@ Vec3<double> shade(Vec3<double>& pi, Vec3<double>& normal, int obj, int depth)
 		}
 		
 	}
-	
-	
-	Vec3<double> luz_ambiente(0.15,0.15,0.15);
-	cor += luz_ambiente;
 
-	// if(depth >= maxdepth)
-	// 	return cor;
+	if(depth >= maxdepth)
+		return cor;
 
-	// if(mat[idx]->reflete())
-	// {
-	// 	cout << "reflete" << endl;
-	// 	Vec3<double> rr = 2* (cam->getEye() - pi);
-	// 	Ray r(rr, pi);
-	// 	Vec3<double> rColor = trace(r,depth + 1);
-	// 	cor += mat[idx]->getK() * rColor;
-	// }
+	if(mat[idx]->reflete())
+	{
+		Vec3<double> v = (cam->getEye() - pi).normalized();
+		Vec3<double> rr = 2* ((v.dot(normal)) * normal) - v;
+		Ray r2(rr, pi);
+		Vec3<double> rColor = trace(r2,depth + 1);
+		cor += mat[idx]->getK() * rColor;
+	}
 
-	// if(mat[idx]->transparente())
-	// {
-	// 	cout << "transparente" << endl;
-	// 	double s = 
-	// }
-		
+	if(mat[idx]->transparente())
+	{
+		Ray r2(r.Dr, pi);
+		Vec3<double> tColor = trace(r2,depth + 1);
+		cor += (1 - mat[idx]->getO()) * tColor;
+	}
+
 	return cor;
 }
 
 Vec3<double> trace(Ray& r, int depth)
 {
-	double maxDistance = 100000000000;
-	double closest = 123456;
+	double closest = 1234567;
 	int id_closest = -1;
 	double distance;
 	Vec3<double> normal, pi;
@@ -214,29 +218,28 @@ Vec3<double> trace(Ray& r, int depth)
 
 	if(id_closest != -1)
 	{
-		return shade(closest_pi, closest_normal, id_closest, depth);
+		return shade(closest_pi, closest_normal, id_closest, depth,r);
 	}
 	else
-
 		return scene->getBackground();
 }
 
 
 int main(){
 	
-	readRt5("../../cenasSimplesRT4/pool.rt5");
+	readRt5("../../cenasSimplesRT4/metal_balls.rt5");
 	int width = cam->getW();
 	int height = cam->getH();
 	Image * img = imgCreate (width, height, 3);
 	
-
+	cout << luz.size() << endl;
 	for(int i = 0; i < height; i++)
 	{
 
 		for(int j = 0; j < width; j++)
 		{
 			Ray r = cam->camGetRay(i, j);
-			Vec3<double> cor = trace(r,0);
+			Vec3<double> cor = trace(r,1);
 			imgSetPixel3f(img, i, j, cor.getX(), cor.getY(), cor.getZ());
 		}	
 	}

@@ -304,8 +304,8 @@ void Triangulo::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, 
 	double u = l1 * u1 + l2 * u2 + l3 * u3;
 	double v = l1 * v1 + l2 * v2 + l3 * v3;
 
-	int i = ( (int)( u * ( w- 1 ) ) % w );
-	int j = ( (int)( v * ( h - 1 ) ) % h );
+	int i = ( (int)( u * ( w- 1 )  + 0.5) % w );
+	int j = ( (int)( v * ( h- 1 )  + 0.5) % w );
 
 	float r, g, b;
 	imgGetPixel3f(textura, i, j, &r, &g, &b);
@@ -401,8 +401,8 @@ void Caixa::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec3
 		v = (double)( y - ymin ) / ( ymax - ymin );
 	}
 
-	int i = ( (int)( u * ( w- 1 ) ) % w );
-	int j = ( (int)( v * ( h - 1 ) ) % h );
+	int i = ( (int)( u * ( w- 1 )  + 0.5) % w );
+	int j = ( (int)( v * ( h- 1 )  + 0.5) % w );
 
 	float r, g, b;
 	imgGetPixel3f(textura, i, j, &r, &g, &b);
@@ -420,8 +420,8 @@ void Esfera::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec
 	double u = ( 1 + phi / M_PI );
 	double v = ( 1 - theta / M_PI );
 	
-	int i = ( (int)( u * ( w- 1 ) ) % w );
-	int j = ( (int)( v * ( h - 1 ) ) % h );
+	int i = ( (int)( u * ( w- 1 )  + 0.5) % w );
+	int j = ( (int)( v * ( h- 1 )  + 0.5) % w );
 
 	float r, g, b;
 	imgGetPixel3f(textura, i, j, &r, &g, &b);
@@ -429,25 +429,16 @@ void Esfera::getTextura(Image * textura,Vec3<double>& pi, Vec3<double>& cor, Vec
 }
 
 Vec3<double> Object::getColor(Vec3<double>& pi, Luz * luz, Vec3<double>& normal, 
-	Camera& cam, Material& mat)
+	Camera& cam, Material& mat, Vec3<double>& kd)
 {
 	Vec3<double> cor(0.0,0.0,0.0);
-	Vec3<double> kd;
-	if(mat.getTextura() == "null")
-		kd = mat.getKd();
-	else
-		getTextura(mat.getFileTextura(), pi, kd, normal);
 
+	double diffuse = calculateDiffuse(pi, *luz, normal);
+	double spec = calculateSpec(pi, *luz, 
+		normal, cam, mat.getKs(), mat.getCoefSpec());
+	cor += ((luz->getRgb()).cross2(kd) * (diffuse)) ;
+	cor += ((luz->getRgb()).cross2(mat.getKs()) * (spec));
 	
-		
-	// for(int i = 0 ; i < luz.size(); i++)
-	// {
-		double diffuse = calculateDiffuse(pi, *luz, normal);
-		double spec = calculateSpec(pi, *luz, 
-			normal, cam, mat.getKs(), mat.getCoefSpec());
-		cor += ((luz->getRgb()).cross2(kd) * (diffuse)) ;
-		cor += ((luz->getRgb()).cross2(mat.getKs()) * (spec));
-	// }
 
 	return cor;
 }

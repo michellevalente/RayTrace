@@ -47,13 +47,13 @@ public:
     T length()  { return norm(); }
     T length2() { return norm2(); }
     
-    Vec3<T> normalized() {
+    Vec3<T> normalized() const{
         T len = norm();
         if (len == 0) len = 1.0;
         return *this/len;
     }
 
-    Vec3<T> normalize() {
+    Vec3<T> normalize() const{
         T len = norm();
         if (len > 0)
             this->set(*this/len);
